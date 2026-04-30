@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Microservicio Ventas</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+    h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .card h2 { font-size: 14px; color: white; padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; }
+    .get    { background: #27ae60; }
+    .post   { background: #2980b9; }
+    .put    { background: #e67e22; }
+    .patch  { background: #8e44ad; }
+    .delete { background: #c0392b; }
+    input, textarea { width: 100%; padding: 6px 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+    button { width: 100%; padding: 8px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 13px; }
+    .btn-get    { background: #27ae60; }
+    .btn-post   { background: #2980b9; }
+    .btn-put    { background: #e67e22; }
+    .btn-patch  { background: #8e44ad; }
+    .btn-delete { background: #c0392b; }
+    button:hover { opacity: 0.85; }
+    pre { background: #ecf0f1; padding: 10px; border-radius: 4px; font-size: 12px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; margin-top: 10px; }
+    label { font-size: 12px; color: #555; }
+  </style>
+</head>
+<body>
+
+<h1>🛒 Microservicio Ventas - Prueba de Endpoints</h1>
+
+<div class="grid">
+
+  <!-- GET ALL con paginación -->
+  <div class="card">
+    <h2 class="get">GET /api/ventas — Listar con paginación</h2>
+    <label>Página</label>
+    <input type="number" id="page" value="0" min="0" />
+    <label>Tamaño</label>
+    <input type="number" id="size" value="5" min="1" />
+    <button class="btn-get" onclick="getAll()">Listar</button>
+    <pre id="res-getAll"></pre>
+  </div>
+
+  <!-- GET BY ID -->
+  <div class="card">
+    <h2 class="get">GET /api/ventas/{id} — Buscar por ID</h2>
+    <label>ID</label>
+    <input type="number" id="getId" placeholder="Ej: 1" />
+    <button class="btn-get" onclick="getById()">Buscar</button>
+    <pre id="res-getById"></pre>
+  </div>
+
+  <!-- GET BY CLIENTE -->
+  <div class="card">
+    <h2 class="get">GET /api/ventas/search?cliente= — Buscar por cliente</h2>
+    <label>Nombre del cliente</label>
+    <input type="text" id="searchCliente" placeholder="Ej: Juan" />
+    <button class="btn-get" onclick="getByCliente()">Buscar</button>
+    <pre id="res-search"></pre>
+  </div>
+
+  <!-- POST -->
+  <div class="card">
+    <h2 class="post">POST /api/ventas — Crear venta</h2>
+    <label>Cliente</label>
+    <input type="text" id="postCliente" placeholder="Nombre del cliente" />
+    <label>Producto</label>
+    <input type="text" id="postProducto" placeholder="Nombre del producto" />
+    <label>Cantidad</label>
+    <input type="number" id="postCantidad" placeholder="Ej: 3" />
+    <label>Precio</label>
+    <input type="number" id="postPrecio" placeholder="Ej: 99.99" step="0.01" />
+    <label>Fecha (YYYY-MM-DD)</label>
+    <input type="date" id="postFecha" />
+    <button class="btn-post" onclick="createVenta()">Crear</button>
+    <pre id="res-post"></pre>
+  </div>
+
+  <!-- PUT -->
+  <div class="card">
+    <h2 class="put">PUT /api/ventas/{id} — Actualizar completo</h2>
+    <label>ID</label>
+    <input type="number" id="putId" placeholder="ID a actualizar" />
+    <label>Cliente</label>
+    <input type="text" id="putCliente" placeholder="Nuevo cliente" />
+    <label>Producto</label>
+    <input type="text" id="putProducto" placeholder="Nuevo producto" />
+    <label>Cantidad</label>
+    <input type="number" id="putCantidad" placeholder="Nueva cantidad" />
+    <label>Precio</label>
+    <input type="number" id="putPrecio" placeholder="Nuevo precio" step="0.01" />
+    <label>Fecha (YYYY-MM-DD)</label>
+    <input type="date" id="putFecha" />
+    <button class="btn-put" onclick="updateFull()">Actualizar</button>
+    <pre id="res-put"></pre>
+  </div>
+
+  <!-- PATCH -->
+  <div class="card">
+    <h2 class="patch">PATCH /api/ventas/{id} — Actualizar parcial</h2>
+    <label>ID</label>
+    <input type="number" id="patchId" placeholder="ID a actualizar" />
+    <label>Cliente (opcional)</label>
+    <input type="text" id="patchCliente" placeholder="Nuevo cliente" />
+    <label>Producto (opcional)</label>
+    <input type="text" id="patchProducto" placeholder="Nuevo producto" />
+    <label>Cantidad (opcional)</label>
+    <input type="number" id="patchCantidad" placeholder="Nueva cantidad" />
+    <label>Precio (opcional)</label>
+    <input type="number" id="patchPrecio" placeholder="Nuevo precio" step="0.01" />
+    <label>Fecha (opcional)</label>
+    <input type="date" id="patchFecha" />
+    <button class="btn-patch" onclick="updatePartial()">Actualizar parcial</button>
+    <pre id="res-patch"></pre>
+  </div>
+
+  <!-- DELETE -->
+  <div class="card">
+    <h2 class="delete">DELETE /api/ventas/{id} — Eliminar</h2>
+    <label>ID</label>
+    <input type="number" id="deleteId" placeholder="ID a eliminar" />
+    <button class="btn-delete" onclick="deleteVenta()">Eliminar</button>
+    <pre id="res-delete"></pre>
+  </div>
+
+</div>
+
+<script>
+  const BASE = 'http://localhost:8080/api/ventas';
+
+  async function call(url, method = 'GET', body = null) {
+    try {
+      const opts = { method, headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(url, opts);
+      if (res.status === 204) return '✅ Eliminado correctamente';
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text);
+        if (!res.ok) return '❌ Error ' + res.status + ': ' + JSON.stringify(json, null, 2);
+        return json;
+      } catch {
+        return res.ok ? '✅ OK: ' + text : '❌ Error ' + res.status + ': ' + text;
+      }
+    } catch (e) {
+      return '❌ No se pudo conectar al servidor: ' + e.message;
+    }
+  }
+
+  async function getAll() {
+    const page = document.getElementById('page').value;
+    const size = document.getElementById('size').value;
+    const data = await call(`${BASE}?page=${page}&size=${size}`);
+    document.getElementById('res-getAll').textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function getById() {
+    const id = document.getElementById('getId').value;
+    const data = await call(`${BASE}/${id}`);
+    document.getElementById('res-getById').textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function getByCliente() {
+    const cliente = document.getElementById('searchCliente').value;
+    const data = await call(`${BASE}/search?cliente=${encodeURIComponent(cliente)}`);
+    document.getElementById('res-search').textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function createVenta() {
+    const body = {
+      cliente:  document.getElementById('postCliente').value,
+      producto: document.getElementById('postProducto').value,
+      cantidad: parseInt(document.getElementById('postCantidad').value),
+      precio:   parseFloat(document.getElementById('postPrecio').value),
+      fecha:    document.getElementById('postFecha').value
+    };
+    const data = await call(BASE, 'POST', body);
+    document.getElementById('res-post').textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function updateFull() {
+    const id = document.getElementById('putId').value;
+    const body = {
+      cliente:  document.getElementById('putCliente').value,
+      producto: document.getElementById('putProducto').value,
+      cantidad: parseInt(document.getElementById('putCantidad').value),
+      precio:   parseFloat(document.getElementById('putPrecio').value),
+      fecha:    document.getElementById('putFecha').value
+    };
+    const data = await call(`${BASE}/${id}`, 'PUT', body);
+    document.getElementById('res-put').textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function updatePartial() {
+    const id = document.getElementById('patchId').value;
+    const body = {};
+    const c = document.getElementById('patchCliente').value;
+    const p = document.getElementById('patchProducto').value;
+    const q = document.getElementById('patchCantidad').value;
+    const pr = document.getElementById('patchPrecio').value;
+    const f = document.getElementById('patchFecha').value;
+    if (c) body.cliente = c;
+    if (p) body.producto = p;
+    if (q) body.cantidad = parseInt(q);
+    if (pr) body.precio = parseFloat(pr);
+    if (f) body.fecha = f;
+    const data = await call(`${BASE}/${id}`, 'PATCH', body);
+    document.getElementById('res-patch').textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function deleteVenta() {
+    const id = document.getElementById('deleteId').value;
+    const data = await call(`${BASE}/${id}`, 'DELETE');
+    document.getElementById('res-delete').textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  }
+</script>
+
+</body>
+</html>

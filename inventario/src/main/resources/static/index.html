@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Microservicio Inventario</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+    h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { background: white; border-radius: 8px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .card h2 { font-size: 14px; color: white; padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; }
+    .get  { background: #27ae60; }
+    .post { background: #2980b9; }
+    input { width: 100%; padding: 6px 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+    button { width: 100%; padding: 8px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 13px; }
+    .btn-get  { background: #27ae60; }
+    .btn-post { background: #2980b9; }
+    button:hover { opacity: 0.85; }
+    pre { background: #ecf0f1; padding: 10px; border-radius: 4px; font-size: 12px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; margin-top: 10px; }
+    label { font-size: 12px; color: #555; }
+  </style>
+</head>
+<body>
+
+<h1>📦 Microservicio Inventario - Prueba de Endpoints</h1>
+
+<div class="grid">
+
+  <!-- GET ALL -->
+  <div class="card">
+    <h2 class="get">GET /api/inventario — Listar todos</h2>
+    <button class="btn-get" onclick="listar()">Listar</button>
+    <pre id="res-listar"></pre>
+  </div>
+
+  <!-- GET BY ID -->
+  <div class="card">
+    <h2 class="get">GET /api/inventario/{id} — Buscar por ID</h2>
+    <label>ID</label>
+    <input type="number" id="getId" placeholder="Ej: 1" />
+    <button class="btn-get" onclick="buscarPorId()">Buscar</button>
+    <pre id="res-getId"></pre>
+  </div>
+
+  <!-- POST -->
+  <div class="card">
+    <h2 class="post">POST /api/inventario — Crear inventario</h2>
+    <label>Nombre</label>
+    <input type="text" id="postNombre" placeholder="Nombre del producto" />
+    <label>Descripción</label>
+    <input type="text" id="postDescripcion" placeholder="Descripción" />
+    <label>Cantidad</label>
+    <input type="number" id="postCantidad" placeholder="Ej: 10" />
+    <label>Precio</label>
+    <input type="number" id="postPrecio" placeholder="Ej: 99.99" step="0.01" />
+    <button class="btn-post" onclick="guardar()">Crear</button>
+    <pre id="res-post"></pre>
+  </div>
+
+</div>
+
+<script>
+  const BASE = 'http://localhost:8082/api/inventario';
+
+  async function call(url, method = 'GET', body = null) {
+    try {
+      const opts = { method, headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(url, opts);
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text);
+        return res.ok ? json : '❌ Error ' + res.status + ': ' + JSON.stringify(json, null, 2);
+      } catch {
+        return res.ok ? '✅ OK: ' + text : '❌ Error ' + res.status + ': ' + text;
+      }
+    } catch (e) {
+      return '❌ No se pudo conectar al servidor: ' + e.message;
+    }
+  }
+
+  async function listar() {
+    const data = await call(BASE);
+    document.getElementById('res-listar').textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function buscarPorId() {
+    const id = document.getElementById('getId').value;
+    const data = await call(`${BASE}/${id}`);
+    document.getElementById('res-getId').textContent = JSON.stringify(data, null, 2);
+  }
+
+  async function guardar() {
+    const body = {
+      nombre:      document.getElementById('postNombre').value,
+      descripcion: document.getElementById('postDescripcion').value,
+      cantidad:    parseInt(document.getElementById('postCantidad').value),
+      precio:      parseFloat(document.getElementById('postPrecio').value)
+    };
+    const data = await call(BASE, 'POST', body);
+    document.getElementById('res-post').textContent = JSON.stringify(data, null, 2);
+  }
+</script>
+
+</body>
+</html>
