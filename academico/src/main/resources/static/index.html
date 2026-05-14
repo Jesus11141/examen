@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>API Students - Tester</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+        h1 { text-align: center; margin-bottom: 20px; color: #333; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+        .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .card h2 { font-size: 15px; margin-bottom: 12px; padding: 6px 10px; border-radius: 4px; color: white; }
+        .get    { background: #2196F3; }
+        .post   { background: #4CAF50; }
+        .put    { background: #FF9800; }
+        .patch  { background: #9C27B0; }
+        .delete { background: #f44336; }
+        input, textarea { width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        button { width: 100%; padding: 9px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 14px; }
+        .btn-get    { background: #2196F3; }
+        .btn-post   { background: #4CAF50; }
+        .btn-put    { background: #FF9800; }
+        .btn-patch  { background: #9C27B0; }
+        .btn-delete { background: #f44336; }
+        pre { margin-top: 10px; background: #f4f4f4; padding: 10px; border-radius: 4px; font-size: 12px; overflow-x: auto; max-height: 150px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+<h1>🎓 API Students Tester</h1>
+
+<div class="grid">
+
+    <!-- GET ALL -->
+    <div class="card">
+        <h2 class="get">GET — Listar todos</h2>
+        <button class="btn-get" onclick="getAll()">Enviar</button>
+        <pre id="res-getAll">...</pre>
+    </div>
+
+    <!-- GET BY ID -->
+    <div class="card">
+        <h2 class="get">GET — Buscar por ID</h2>
+        <input type="number" id="getId" placeholder="ID del estudiante" />
+        <button class="btn-get" onclick="getById()">Enviar</button>
+        <pre id="res-getById">...</pre>
+    </div>
+
+    <!-- POST -->
+    <div class="card">
+        <h2 class="post">POST — Crear estudiante</h2>
+        <input type="text" id="postName" placeholder="Nombre" />
+        <select id="postState" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ccc;border-radius:4px;">
+            <option value="true">Activo (true)</option>
+            <option value="false">Inactivo (false)</option>
+        </select>
+        <button class="btn-post" onclick="createStudent()">Enviar</button>
+        <pre id="res-post">...</pre>
+    </div>
+
+    <!-- PUT -->
+    <div class="card">
+        <h2 class="put">PUT — Actualizar completo</h2>
+        <input type="number" id="putId" placeholder="ID del estudiante" />
+        <input type="text" id="putName" placeholder="Nuevo nombre" />
+        <select id="putState" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ccc;border-radius:4px;">
+            <option value="true">Activo (true)</option>
+            <option value="false">Inactivo (false)</option>
+        </select>
+        <button class="btn-put" onclick="updateFull()">Enviar</button>
+        <pre id="res-put">...</pre>
+    </div>
+
+    <!-- PATCH -->
+    <div class="card">
+        <h2 class="patch">PATCH — Actualizar parcial</h2>
+        <input type="number" id="patchId" placeholder="ID del estudiante" />
+        <input type="text" id="patchName" placeholder="Nombre (opcional)" />
+        <select id="patchState" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ccc;border-radius:4px;">
+            <option value="">-- No cambiar state --</option>
+            <option value="true">Activo (true)</option>
+            <option value="false">Inactivo (false)</option>
+        </select>
+        <button class="btn-patch" onclick="updatePartial()">Enviar</button>
+        <pre id="res-patch">...</pre>
+    </div>
+
+    <!-- DELETE -->
+    <div class="card">
+        <h2 class="delete">DELETE — Eliminar estudiante</h2>
+        <input type="number" id="deleteId" placeholder="ID del estudiante" />
+        <button class="btn-delete" onclick="deleteStudent()">Enviar</button>
+        <pre id="res-delete">...</pre>
+    </div>
+
+</div>
+
+<script>
+    const BASE = "http://localhost:8080/api/students";
+
+    function show(id, data) {
+        document.getElementById(id).textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function request(resId, url, options = {}) {
+        try {
+            const res = await fetch(url, options);
+            if (res.status === 204 || res.headers.get("content-length") === "0") {
+                show(resId, { mensaje: "Operacion exitosa" });
+            } else {
+                show(resId, await res.json());
+            }
+        } catch (e) {
+            show(resId, { error: "No se pudo conectar. Esta corriendo la app en puerto 8080?" });
+        }
+    }
+
+    function getAll() {
+        request("res-getAll", BASE);
+    }
+
+    function getById() {
+        const id = document.getElementById("getId").value;
+        request("res-getById", `${BASE}/${id}`);
+    }
+
+    function createStudent() {
+        const body = {
+            name: document.getElementById("postName").value,
+            state: document.getElementById("postState").value === "true"
+        };
+        request("res-post", BASE, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+    }
+
+    function updateFull() {
+        const id = document.getElementById("putId").value;
+        const body = {
+            name: document.getElementById("putName").value,
+            state: document.getElementById("putState").value === "true"
+        };
+        request("res-put", `${BASE}/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+    }
+
+    function updatePartial() {
+        const id = document.getElementById("patchId").value;
+        const body = {};
+        const name = document.getElementById("patchName").value;
+        const state = document.getElementById("patchState").value;
+        if (name) body.name = name;
+        if (state !== "") body.state = state === "true";
+        request("res-patch", `${BASE}/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+    }
+
+    function deleteStudent() {
+        const id = document.getElementById("deleteId").value;
+        request("res-delete", `${BASE}/${id}`, { method: "DELETE" });
+    }
+</script>
+
+</body>
+</html>
